@@ -1,5 +1,25 @@
+## 
+# Build files
+##
 builds/
+
+##
+# Ignored source files
+##
 src/**/*.proto
 src/**/*.go
+
+##
+# In most cases, you do not want to synchronize the git history
+## 
 .git/
+
+##
+# Vendors will be synced from scratch on inits
+##
 vendor/
+
+##
+# Readme, documentation
+##
+Readme.md

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -16,7 +17,6 @@ import (
 	gitignore "github.com/denormal/go-gitignore"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v2"
 )
 
 const goalignoreFile = ".goalignore"
@@ -147,21 +147,16 @@ func updateTaskFile(dest string, pkg string) error {
 		return err
 	}
 
-	var taskfile Taskfile
-	yaml.Unmarshal(data, &taskfile)
-	if err != nil {
-		return err
-	}
+	var reStr *regexp.Regexp
+	output := string(data)
 
-	taskfile.Vars.Pkg = pkg
-	taskfile.Vars.Version = "0.0.1"
+	reStr = regexp.MustCompile("(?m:^  pkg:.*$)")
+	output = reStr.ReplaceAllString(output, "  pkg: "+pkg)
 
-	data, err = yaml.Marshal(taskfile)
-	if err != nil {
-		return err
-	}
+	reStr = regexp.MustCompile("^  version:.*/m")
+	output = reStr.ReplaceAllString(output, "  version: 0.0.1")
 
-	return ioutil.WriteFile(taskfilePath, data, 0644)
+	return ioutil.WriteFile(taskfilePath, []byte(output), 0644)
 }
 
 func updateVendorDependencies(dest string) error {
@@ -173,8 +168,8 @@ func updateVendorDependencies(dest string) error {
 
 func runStep(s *spinner.Spinner, prefix string, call func() error) {
 	cyan := color.New(color.FgMagenta)
-	bullet := cyan.Sprint("* ")
-	s.Prefix = fmt.Sprintf("%s %s", bullet, prefix)
+	bullet := cyan.Sprint("*")
+	s.Prefix = fmt.Sprintf("%s %s ", bullet, prefix)
 	s.Color("cyan")
 
 	err := call()
@@ -197,7 +192,11 @@ func init() {
 
 			printHeader(src, dest)
 
-			s := spinner.New(spinner.CharSets[31], 100*time.Millisecond)
+			// hide cursor, defer its reappearance
+			fmt.Print("\033[?25l")
+			defer fmt.Print("\033[?25h")
+
+			s := spinner.New(spinner.CharSets[35], 100*time.Millisecond)
 			s.Start()
 
 			runStep(s, "Create new project from template", func() error {
@@ -213,8 +212,8 @@ func init() {
 			})
 
 			s.Stop()
-			green := color.New(color.FgCyan, color.Bold)
-			green.Printf("Project created successfully")
+			green := color.New(color.FgGreen, color.Bold)
+			green.Printf("Project created successfully\n")
 		},
 	}
 
