@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+  metrics:
+    image: prom/prometheus
+  discovery:
+    image: consul
+    command: agent -server -bootstrap -client 0.0.0.0 -ui
+    ports:
+      - "8400:8400"
+      - "8500:8500"
+      - "8600:8600"
+      - "8600:8600/udp"
+  server:
+    image: goal
+    build: .
+    links:
+      - metrics
+      - discovery
+    ports:
+      - 8080:8080
+    environment:
+      COLORS: "true"
+      GOAL_DISCOVERY_ENABLE: "true"
+      GOAL_DISCOVERY_ADDRESS: "discovery:8500"
+      GOAL_DISCOVERY_SCHEME: "http"
+      GOAL_CLUSTER_ENABLE: "true"
+      GOAL_HTTP_LISTEN: "0.0.0.0:8080"

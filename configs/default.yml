@@ -1,0 +1,7 @@
+goal:
+  logger:
+    level: trace
+  discovery:
+    enable: true
+  cluster:
+    enable: false

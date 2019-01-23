@@ -1,0 +1,6 @@
+# Build folder
+builds/
+
+# Generated messages
+*.pb.go
+*.twirp.go

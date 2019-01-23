@@ -1,0 +1,149 @@
+##
+# Taskfile
+#
+# See: https://taskfile.org/#/usage
+##
+
+##
+# Taskfile format version in use in this file
+##
+version: '2'
+
+##
+# Variables
+##
+vars:
+  pkg: github.com/Wizcorp/goal
+  version: 0.0.1
+
+##
+# Sources list
+##
+sources: &sources
+  - server.go
+  - src/**/*.go
+
+##
+# Build tasks
+##
+tasks:
+  ##
+  # Cleanup task
+  ##
+  clean:
+    desc: "Clean up vendor files and generated code"
+    silent: true
+    cmds:
+        - task: clean:messages
+        - task: clean:deps
+
+  ##
+  # Messages
+  ##
+  proto:
+      desc: "Generate messages code from Protobuf"
+      silent: true
+      generates:
+          - ./src/proto/*.pb.go
+      cmds:
+          - protoc --twirp_out=./ --go_out=./ ./src/proto/*.proto
+
+  clean:proto:
+      desc: "Clean up generated code by Protobuf"
+      silent: true
+      cmds:
+          - rm ./src/proto/*.pb.go
+
+  ##
+  # Dependencies
+  ##
+  deps:
+      desc: "Install/update all dependencies, submodules, and re-generate message code"
+      silent: true
+      cmds:
+          - dep ensure
+          - git submodule update --init --recursive
+          - task: messages
+
+  clean:deps:
+      desc: "Clean up dependencies and generated code"
+      silent: true
+      cmds:
+          - rm -r ./vendor
+          - task: clean:messages
+
+  ##
+  # Tests
+  ##
+  test:lint:
+      desc: "Lint code using golint"
+      silent: true
+      cmds:
+          - golint -set_exit_status=true
+      sources: *sources
+
+  test:unit:
+      desc: "Run unit test suite"
+      silent: true
+      ##
+      # There seems to be some issues with how globs are processed by Task;
+      # the line below is a workaround which won't work on Windows, but
+      # will work on *nix compatible platforms
+      #
+      # See: https://github.com/go-task/task/issues/153
+      ##
+      cmds:
+          - go test ./src/* -bench=.
+      sources: *sources
+
+  test:
+      desc: "Run all tests for this project"
+      silent: true
+      cmds:
+          - task: test:lint
+          - task: test:unit
+      sources: *sources
+
+  ##
+  # Development
+  ##
+  run:
+      desc: "Run server locally"
+      silent: true
+      ignore_error: true
+      env:
+        COLORS: "true"
+      cmds:
+          - go run ./server.go
+      sources: *sources
+
+  run:docker:
+      desc: "Run server using the Docker image"
+      silent: true
+      cmds:
+          - docker-compose up
+      sources: *sources
+
+  ##
+  # Build tasks
+  ##
+  build:binary:
+      desc: "Build the server's binary"
+      silent: true
+      cmds:
+          - go build -o ./builds/server
+      sources: *sources
+
+  build:docker:
+      desc: "Build the Docker image for this server"
+      silent: true
+      cmds:
+          - docker-compose build --build-arg pkg={{.pkg}}
+
+  build:
+      desc: "Build all artifacts related to this project"
+      silent: true
+      cmds:
+          - task: build:binary
+          - task: build:docker
+
