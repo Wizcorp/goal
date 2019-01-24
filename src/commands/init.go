@@ -21,7 +21,7 @@ import (
 
 const goalignoreFile = ".goalignore"
 
-func getTemplateDir() string {
+func getProjectDir() string {
 	var returnPath string
 
 	gopath := runtime.GOROOT()
@@ -166,9 +166,16 @@ func updateVendorDependencies(dest string) error {
 	return cmd.Run()
 }
 
+func install(dest string) error {
+	cmd := exec.Command("go", "install")
+	cmd.Dir = dest
+
+	return cmd.Run()
+}
+
 func runStep(s *spinner.Spinner, prefix string, call func() error) {
-	cyan := color.New(color.FgMagenta)
-	bullet := cyan.Sprint("*")
+	magenta := color.New(color.FgMagenta)
+	bullet := magenta.Sprint("*")
 	s.Prefix = fmt.Sprintf("%s %s ", bullet, prefix)
 	s.Color("cyan")
 
@@ -187,7 +194,8 @@ func init() {
 		Long:  `Initialize a new project`,
 		Run: func(cmd *cobra.Command, args []string) {
 			pkgPath := args[0]
-			src := getTemplateDir()
+			newBinaryName := filepath.Base(pkgPath)
+			src := getProjectDir()
 			dest := filepath.Join(getGoPath(), "src", pkgPath)
 
 			printHeader(src, dest)
@@ -211,9 +219,22 @@ func init() {
 				return updateVendorDependencies(dest)
 			})
 
+			// Todo: if development build, sync current local copy of
+			// the parent project to the destination's vendors
+
+			runStep(s, "Installing", func() error {
+				return install(dest)
+			})
+
 			s.Stop()
 			green := color.New(color.FgGreen, color.Bold)
-			green.Printf("Project created successfully\n")
+			cyan := color.New(color.FgCyan)
+
+			prefix := green.Sprintf("Project created successfully! Run")
+			command := cyan.Sprintf("cd $(%s develop)", newBinaryName)
+			suffix := green.Sprintf("to start developing")
+
+			fmt.Printf("%s %s %s\n", prefix, command, suffix)
 		},
 	}
 

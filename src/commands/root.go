@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/Wizcorp/goal/src/systems"
@@ -19,7 +20,7 @@ type Command = cobra.Command
 
 // Singleton root command
 var command = &cobra.Command{
-	Use:   "goal",
+	Use:   filepath.Base(os.Args[0]),
 	Short: "Goal NextGen Game Server",
 	Long:  `GoalNG is a game server framework for real-time games`,
 	Run: func(cmd *cobra.Command, args []string) {
