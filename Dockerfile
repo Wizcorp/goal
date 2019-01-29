@@ -60,5 +60,6 @@ ARG pkg
 
 WORKDIR /app
 COPY --from=build-env /app/builds .
+COPY ./configs ./configs
 
 CMD ["./server"]

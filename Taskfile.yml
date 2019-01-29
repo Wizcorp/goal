@@ -47,6 +47,20 @@ tasks:
     cmds:
     - rm ./src/proto/*.pb.go
 
+  proto:template:
+    desc: "Generate messages code of the template from Protobuf"
+    silent: true
+    generates:
+    - ./src/proto/*.pb.go
+    cmds:
+    - protoc --twirp_out=./ --go_out=./ ./_template/src/proto/*.proto
+
+  clean:proto:
+    desc: "Clean up generated code by Protobuf in the template"
+    silent: true
+    cmds:
+    - rm ./_template/src/proto/*.pb.go
+
   ##
   # Dependencies
   ##
@@ -55,7 +69,6 @@ tasks:
     silent: true
     cmds:
     - go get
-    - git submodule update --init --recursive
     - task: messages
 
   deps:update:

@@ -1,9 +1,10 @@
 package systems
 
 import (
+	. "github.com/Wizcorp/goal/_template/src/api"
+
 	. "github.com/Wizcorp/goal/src/api"
 	. "github.com/Wizcorp/goal/src/systems"
-	. "github.com/Wizcorp/goal/template/src/api"
 )
 
 type Game interface {

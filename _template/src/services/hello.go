@@ -4,9 +4,11 @@ import (
 	"context"
 	"log"
 
+	. "github.com/Wizcorp/goal/_template/src/proto"
+	. "github.com/Wizcorp/goal/_template/src/systems"
+
 	. "github.com/Wizcorp/goal/src/api"
-	. "github.com/Wizcorp/goal/template/src/proto"
-	. "github.com/Wizcorp/goal/template/src/systems"
+	. "github.com/Wizcorp/goal/src/systems"
 )
 
 type HelloService struct {

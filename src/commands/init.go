@@ -124,7 +124,7 @@ func createProject(src string, dest string) error {
 }
 
 func addTemplateFiles(src string, dest string) error {
-	templatePath := filepath.Join(src, "template")
+	templatePath := filepath.Join(src, "_template")
 
 	// Skip if no template folders are present
 	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
@@ -169,7 +169,7 @@ func initializeModule(dest string, moduleName string) error {
 }
 
 func updateDependencies(dest string) error {
-	cmd := exec.Command("go", "get")
+	cmd := exec.Command("task", "deps")
 	cmd.Dir = dest
 
 	return cmd.Run()

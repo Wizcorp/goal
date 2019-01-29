@@ -1,5 +1,10 @@
 # Goal-NG
 
+## Requirements
+
+* [Go version 1.11 or higher](https://golang.org/dl/)
+* [task](https://github.com/go-task/task)
+
 ## Installation
 
 ```shell
@@ -12,4 +17,10 @@ go get -u github.com/Wizcorp/goal
 goal init github.com/org/repo
 ```
 
-More documentation coming soon.
+## Documentation
+
+Coming soon.
+
+## License
+
+See [license](./License.md)

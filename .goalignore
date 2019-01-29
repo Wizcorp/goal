@@ -11,7 +11,7 @@ src/
 ##
 # Ignore template files, we will copy them through the init process
 ##
-template/
+_template/
 
 ##
 # In most cases, you do not want to synchronize the git history
