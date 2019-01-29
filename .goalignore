@@ -4,10 +4,14 @@
 builds/
 
 ##
-# Ignored source files
+# Ignore source files
 ##
-src/**/*.proto
-src/**/*.go
+src/
+
+##
+# Ignore template files, we will copy them through the init process
+##
+template/
 
 ##
 # In most cases, you do not want to synchronize the git history
@@ -15,9 +19,9 @@ src/**/*.go
 .git/
 
 ##
-# Vendors will be synced from scratch on inits
+# Module file
 ##
-vendor/
+go.mod
 
 ##
 # Readme, documentation

@@ -2,13 +2,10 @@ package commands
 
 import (
 	"fmt"
-	"go/build"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -55,21 +52,35 @@ func printHeader(template string, dest string) {
 	fmt.Println("")
 }
 
-func getGoPath() string {
-	gopath := os.Getenv("GOPATH")
-	if gopath == "" {
-		gopath = build.Default.GOPATH
-	}
-
-	return gopath
-}
-
 func createIgnoreMatcher(src string) (gitignore.GitIgnore, error) {
 	ignoreFilePath := filepath.Join(src, goalignoreFile)
 	return gitignore.NewFromFile(ignoreFilePath)
 }
 
-func createFromTemplate(src string, dest string) error {
+func copy(info os.FileInfo, srcPath string, destPath string) error {
+	// Create a directory if the source is a directory
+	if info.IsDir() {
+		return os.Mkdir(destPath, info.Mode())
+	}
+
+	// Copy file
+	srcFile, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	destFile, err := os.OpenFile(destPath, os.O_RDWR|os.O_CREATE, info.Mode())
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, srcFile)
+	return err
+}
+
+func createProject(src string, dest string) error {
 	matcher, err := createIgnoreMatcher(src)
 	if err != nil {
 		return err
@@ -106,29 +117,39 @@ func createFromTemplate(src string, dest string) error {
 			}
 		}
 
-		// Create a directory if the source is a directory
-		if info.IsDir() {
-			return os.Mkdir(destPath, info.Mode())
-		}
-
-		// Copy file
-		srcFile, err := os.Open(srcPath)
-		if err != nil {
-			return err
-		}
-		defer srcFile.Close()
-
-		destFile, err := os.OpenFile(destPath, os.O_RDWR|os.O_CREATE, info.Mode())
-		if err != nil {
-			return err
-		}
-		defer destFile.Close()
-
-		_, err = io.Copy(destFile, srcFile)
-		return err
+		return copy(info, srcPath, destPath)
 	})
 
 	return err
+}
+
+func addTemplateFiles(src string, dest string) error {
+	templatePath := filepath.Join(src, "template")
+
+	// Skip if no template folders are present
+	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
+		return nil
+	}
+
+	return filepath.Walk(templatePath, func(srcPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Build the destination file path
+		relativePath, err := filepath.Rel(templatePath, srcPath)
+		if err != nil {
+			return err
+		}
+		destPath := filepath.Join(dest, relativePath)
+
+		// Skip the root
+		if srcPath == templatePath {
+			return nil
+		}
+
+		return copy(info, srcPath, destPath)
+	})
 }
 
 type TaskfileVars struct {
@@ -140,27 +161,15 @@ type Taskfile struct {
 	Vars TaskfileVars `yaml:vars`
 }
 
-func updateTaskFile(dest string, pkg string) error {
-	taskfilePath := filepath.Join(dest, "Taskfile.yml")
-	data, err := ioutil.ReadFile(taskfilePath)
-	if err != nil {
-		return err
-	}
+func initializeModule(dest string, moduleName string) error {
+	cmd := exec.Command("go", "mod", "init", moduleName)
+	cmd.Dir = dest
 
-	var reStr *regexp.Regexp
-	output := string(data)
-
-	reStr = regexp.MustCompile("(?m:^  pkg:.*$)")
-	output = reStr.ReplaceAllString(output, "  pkg: "+pkg)
-
-	reStr = regexp.MustCompile("^  version:.*/m")
-	output = reStr.ReplaceAllString(output, "  version: 0.0.1")
-
-	return ioutil.WriteFile(taskfilePath, []byte(output), 0644)
+	return cmd.Run()
 }
 
-func updateVendorDependencies(dest string) error {
-	cmd := exec.Command("dep", "ensure")
+func updateDependencies(dest string) error {
+	cmd := exec.Command("go", "get")
 	cmd.Dir = dest
 
 	return cmd.Run()
@@ -196,7 +205,7 @@ func init() {
 			pkgPath := args[0]
 			newBinaryName := filepath.Base(pkgPath)
 			src := getProjectDir()
-			dest := filepath.Join(getGoPath(), "src", pkgPath)
+			dest := filepath.Base(pkgPath)
 
 			printHeader(src, dest)
 
@@ -207,22 +216,23 @@ func init() {
 			s := spinner.New(spinner.CharSets[35], 100*time.Millisecond)
 			s.Start()
 
-			runStep(s, "Create new project from template", func() error {
-				return createFromTemplate(src, dest)
+			runStep(s, "Create new project", func() error {
+				return createProject(src, dest)
 			})
 
-			runStep(s, "Update Taskfile.yml", func() error {
-				return updateTaskFile(dest, pkgPath)
+			runStep(s, "Apply additional template files", func() error {
+				return addTemplateFiles(src, dest)
 			})
 
-			runStep(s, "Update vendor dependencies", func() error {
-				return updateVendorDependencies(dest)
+			runStep(s, "Initialize module", func() error {
+				return initializeModule(dest, pkgPath)
 			})
 
-			// Todo: if development build, sync current local copy of
-			// the parent project to the destination's vendors
+			runStep(s, "Update dependencies", func() error {
+				return updateDependencies(dest)
+			})
 
-			runStep(s, "Installing", func() error {
+			runStep(s, "Installing to GOPATH", func() error {
 				return install(dest)
 			})
 
@@ -231,7 +241,7 @@ func init() {
 			cyan := color.New(color.FgCyan)
 
 			prefix := green.Sprintf("Project created successfully! Run")
-			command := cyan.Sprintf("cd $(%s develop)", newBinaryName)
+			command := cyan.Sprintf("cd %s", newBinaryName)
 			suffix := green.Sprintf("to start developing")
 
 			fmt.Printf("%s %s %s\n", prefix, command, suffix)

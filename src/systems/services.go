@@ -2,6 +2,7 @@ package systems
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -17,19 +18,21 @@ import (
 	. "github.com/Wizcorp/goal/src/proto"
 )
 
-var services = make(GoalServices)
-var handlers = make(GoalHandlers)
+var serviceServers = make(map[string]GoalServiceServer)
+var servicesRegistry = make(map[string]GoalService)
+var handlers = make(map[string]GoalServiceHandler)
 
 // RegisterService is called to register the triplet of service, controller and hooks. Hooks and services
-func RegisterService(path string, service GoalService, controller GoalController, hooks *GoalHooks) {
-	services[path] = service
+func RegisterService(path string, server GoalServiceServer, service GoalService, hooks *GoalHooks) {
+	serviceServers[path] = server
+	servicesRegistry[path] = service
 
-	controllerType := reflect.TypeOf(controller)
-	for i := 0; i < controllerType.NumMethod(); i++ {
-		methodType := controllerType.Method(i)
+	serviceType := reflect.TypeOf(service)
+	for i := 0; i < serviceType.NumMethod(); i++ {
+		methodType := serviceType.Method(i)
 
 		if strings.HasPrefix(methodType.Name, "Handle") {
-			method := reflect.ValueOf(controller).Method(i)
+			method := reflect.ValueOf(service).Method(i)
 			registerMesssageHandler(methodType.Type, method)
 		}
 	}
@@ -49,32 +52,41 @@ func registerMesssageHandler(methodType reflect.Type, method reflect.Value) {
 	handlers[fullname] = append(handlers[fullname], method)
 }
 
-type GoalControllers interface {
+type GoalServices interface {
 	GoalSystem
 	ProcessJSONMessages(ctx context.Context, data []byte)
 	EmitJSONMessages(ctx context.Context, messages ...proto.Message) error
 	ProcessProtobufMessages(ctx context.Context, data []byte)
 	EmitProtobufMessages(ctx context.Context, messages ...proto.Message) error
 	ProcessMessages(ctx context.Context, envelope *GoalMessageEnvelope)
-	GetServices() *GoalServices
-	GetHandlers() *GoalHandlers
+	GetServiceServers() *map[string]GoalServiceServer
+	GetServices() *map[string]GoalService
+	GetHandlers() *map[string]GoalServiceHandler
 }
 
 // Controller define the expected structure of controllers used to create services
-type GoalController interface{}
+type GoalService interface{}
 
-type GoalControllerWithSetup interface {
+// Service represent Twirp-compatible services
+type GoalServiceServer interface {
+	ServeHTTP(http.ResponseWriter, *http.Request)
+}
+
+type GoalServiceHandler []reflect.Value
+
+type GoalServiceWithSetup interface {
 	Setup(server GoalServer, config *GoalConfig) error
 }
 
-type GoalControllerWithTeardown interface {
+type GoalServiceWithTeardown interface {
 	Teardown(server GoalServer, config *GoalConfig) error
 }
 
-type controllers struct {
+type services struct {
 	Status   Status
-	Services *GoalServices
-	Handlers *GoalHandlers
+	Servers  *map[string]GoalServiceServer
+	Services *map[string]GoalService
+	Handlers *map[string]GoalServiceHandler
 	Logger   GoalLogger
 }
 
@@ -84,29 +96,22 @@ type controllers struct {
 // See https://godoc.org/github.com/twitchtv/twirp#ServerHooks for more details
 type GoalHooks = twirp.ServerHooks
 
-type GoalHandlers map[string][]reflect.Value
-
-type GoalServices map[string]GoalService
-
 type GoalServiceEmitter func(ctx context.Context, messages ...proto.Message) error
 
-// Service represent Twirp-compatible services
-type GoalService interface {
-	ServeHTTP(http.ResponseWriter, *http.Request)
-}
-
-func NewControllers() *controllers {
-	return &controllers{
+func NewControllers() *services {
+	return &services{
 		Status:   DownStatus,
 		Handlers: &handlers,
-		Services: &services,
+		Servers:  &serviceServers,
+		Services: &servicesRegistry,
 	}
 }
 
-func (controllers *controllers) Setup(server GoalServer, config *GoalConfig) error {
-	controllers.Logger = (*server.GetSystem("logger")).(GoalLogger)
-	for name, controller := range *controllers.Handlers {
-		if controller, ok := interface{}(controller).(GoalControllerWithSetup); ok {
+func (services *services) Setup(server GoalServer, config *GoalConfig) error {
+	services.Logger = (*server.GetSystem("logger")).(GoalLogger)
+	for name, controller := range *services.Services {
+		if controller, ok := interface{}(controller).(GoalServiceWithSetup); ok {
+			fmt.Println("asdasda")
 			subconfig, err := GetSubconfig(name, config)
 			if err != nil {
 				return errors.Wrap(err, 0)
@@ -119,14 +124,14 @@ func (controllers *controllers) Setup(server GoalServer, config *GoalConfig) err
 		}
 	}
 
-	controllers.Status = UpStatus
+	services.Status = UpStatus
 
 	return nil
 }
 
-func (controllers *controllers) Teardown(server GoalServer, config *GoalConfig) error {
-	for name, controller := range *controllers.Handlers {
-		if controller, ok := interface{}(controller).(GoalControllerWithTeardown); ok {
+func (services *services) Teardown(server GoalServer, config *GoalConfig) error {
+	for name, controller := range *services.Services {
+		if controller, ok := interface{}(controller).(GoalServiceWithTeardown); ok {
 			subconfig, err := GetSubconfig(name, config)
 			if err != nil {
 				return errors.Wrap(err, 0)
@@ -139,25 +144,29 @@ func (controllers *controllers) Teardown(server GoalServer, config *GoalConfig) 
 		}
 	}
 
-	controllers.Status = DownStatus
+	services.Status = DownStatus
 
 	return nil
 }
 
-func (controllers *controllers) GetStatus() Status {
-	return controllers.Status
+func (services *services) GetStatus() Status {
+	return services.Status
 }
 
-func (controllers *controllers) GetServices() *GoalServices {
-	return controllers.Services
+func (services *services) GetServiceServers() *map[string]GoalServiceServer {
+	return services.Servers
 }
 
-func (controllers *controllers) GetHandlers() *GoalHandlers {
-	return controllers.Handlers
+func (services *services) GetServices() *map[string]GoalService {
+	return services.Services
 }
 
-func (controllers *controllers) ProcessJSONMessages(ctx context.Context, data []byte) {
-	logger := controllers.Logger.GetInstance()
+func (services *services) GetHandlers() *map[string]GoalServiceHandler {
+	return services.Handlers
+}
+
+func (services *services) ProcessJSONMessages(ctx context.Context, data []byte) {
+	logger := services.Logger.GetInstance()
 
 	var envelope GoalMessageEnvelope
 	err := jsonpb.UnmarshalString(string(data), &envelope)
@@ -169,10 +178,10 @@ func (controllers *controllers) ProcessJSONMessages(ctx context.Context, data []
 		return
 	}
 
-	controllers.ProcessMessages(ctx, &envelope)
+	services.ProcessMessages(ctx, &envelope)
 }
 
-func (controllers *controllers) EmitJSONMessages(ctx context.Context, messages ...proto.Message) error {
+func (services *services) EmitJSONMessages(ctx context.Context, messages ...proto.Message) error {
 	envelope, err := packEnvelope(messages)
 	if err != nil {
 		return err
@@ -188,8 +197,8 @@ func (controllers *controllers) EmitJSONMessages(ctx context.Context, messages .
 	return marshaler.Marshal(writer, envelope)
 }
 
-func (controllers *controllers) ProcessProtobufMessages(ctx context.Context, data []byte) {
-	logger := controllers.Logger.GetInstance()
+func (services *services) ProcessProtobufMessages(ctx context.Context, data []byte) {
+	logger := services.Logger.GetInstance()
 
 	var envelope GoalMessageEnvelope
 	err := proto.Unmarshal(data, &envelope)
@@ -201,10 +210,10 @@ func (controllers *controllers) ProcessProtobufMessages(ctx context.Context, dat
 		return
 	}
 
-	controllers.ProcessMessages(ctx, &envelope)
+	services.ProcessMessages(ctx, &envelope)
 }
 
-func (controllers *controllers) EmitProtobufMessages(ctx context.Context, messages ...proto.Message) error {
+func (services *services) EmitProtobufMessages(ctx context.Context, messages ...proto.Message) error {
 	envelope, err := packEnvelope(messages)
 	if err != nil {
 		return err
@@ -220,8 +229,8 @@ func (controllers *controllers) EmitProtobufMessages(ctx context.Context, messag
 }
 
 // ProcessMessages is used to process received GoalEnvelopes
-func (controllers *controllers) ProcessMessages(ctx context.Context, envelope *GoalMessageEnvelope) {
-	logger := controllers.Logger.GetInstance()
+func (services *services) ProcessMessages(ctx context.Context, envelope *GoalMessageEnvelope) {
+	logger := services.Logger.GetInstance()
 
 	for _, data := range envelope.Messages {
 		var message ptypes.DynamicAny
@@ -235,16 +244,16 @@ func (controllers *controllers) ProcessMessages(ctx context.Context, envelope *G
 			continue
 		}
 
-		controllers.processMessage(ctx, message.Message)
+		services.processMessage(ctx, message.Message)
 	}
 }
 
-func (controllers *controllers) processMessage(ctx context.Context, message proto.Message) {
+func (services *services) processMessage(ctx context.Context, message proto.Message) {
 	name := proto.MessageName(message)
-	hook, found := (*controllers.Handlers)[name]
+	hook, found := (*services.Handlers)[name]
 
 	if !found {
-		logger := controllers.Logger.GetInstance()
+		logger := services.Logger.GetInstance()
 		logger.WithFields(LogFields{
 			"type":    name,
 			"message": message,

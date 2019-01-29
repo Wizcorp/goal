@@ -10,17 +10,10 @@
 version: '2'
 
 ##
-# Variables
-##
-vars:
-  pkg: github.com/Wizcorp/goal
-  version: 0.0.1
-
-##
 # Sources list
 ##
 sources: &sources
-  - server.go
+  - app.go
   - src/**/*.go
 
 ##
@@ -61,9 +54,16 @@ tasks:
     desc: "Install/update all dependencies, submodules, and re-generate message code"
     silent: true
     cmds:
-    - dep ensure
+    - go get
     - git submodule update --init --recursive
     - task: messages
+
+  deps:update:
+    desc: "Upgrade code dependencies"
+    silent: true
+    cmds:
+    - go get -u
+    - go mod vendor
 
   clean:deps:
     desc: "Clean up dependencies and generated code"
@@ -112,10 +112,10 @@ tasks:
     silent: true
     ignore_error: true
     env:
-    COLORS: "true"
+      COLORS: "true"
     sources: *sources
     cmds:
-    - go run ./server.go
+    - go run ./app.go
 
   run:docker:
     desc: "Run server using the Docker image"
@@ -138,7 +138,7 @@ tasks:
     desc: "Build the Docker image for this server"
     silent: true
     cmds:
-    - docker-compose build --build-arg pkg={{.pkg}}
+    - docker-compose build
 
   build:
     desc: "Build all artifacts related to this project"

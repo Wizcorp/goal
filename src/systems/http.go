@@ -26,12 +26,12 @@ type GoalMessageStreamConnection interface {
 }
 
 type httpServer struct {
-	Address     string
-	Prefix      string
-	Server      http.Server
-	Controllers GoalControllers
-	Mux         *http.ServeMux
-	Logger      GoalLogger
+	Address  string
+	Prefix   string
+	Server   http.Server
+	Services GoalServices
+	Mux      *http.ServeMux
+	Logger   GoalLogger
 }
 
 var upgrader = websocket.Upgrader{
@@ -68,8 +68,8 @@ func (httpServer *httpServer) Setup(server GoalServer, config *GoalConfig) error
 		"prefix":  prefix,
 	}).Info("Setting up HTTP Server system")
 
-	httpServer.Controllers = (*server.GetSystem("services")).(GoalControllers)
-	for servicePath, service := range *httpServer.Controllers.GetServices() {
+	httpServer.Services = (*server.GetSystem("services")).(GoalServices)
+	for servicePath, service := range *httpServer.Services.GetServiceServers() {
 		logger.WithFields(LogFields{
 			"subpath": servicePath,
 		}).Debug("Exposing service")
@@ -151,7 +151,7 @@ func (httpServer *httpServer) handleWebsocket(w http.ResponseWriter, r *http.Req
 
 func (httpServer *httpServer) processJSONMessages(conn *websocket.Conn) {
 	logger := httpServer.Logger.GetInstance()
-	ctx := createContext(conn, httpServer.Controllers.EmitJSONMessages)
+	ctx := createContext(conn, httpServer.Services.EmitJSONMessages)
 
 	for {
 		data, err := readConnectionData(conn, logger)
@@ -162,13 +162,13 @@ func (httpServer *httpServer) processJSONMessages(conn *websocket.Conn) {
 			break
 		}
 
-		httpServer.Controllers.ProcessJSONMessages(ctx, *data)
+		httpServer.Services.ProcessJSONMessages(ctx, *data)
 	}
 }
 
 func (httpServer *httpServer) processProtobufMessages(conn *websocket.Conn) {
 	logger := httpServer.Logger.GetInstance()
-	ctx := createContext(conn, httpServer.Controllers.EmitProtobufMessages)
+	ctx := createContext(conn, httpServer.Services.EmitProtobufMessages)
 
 	for {
 		data, err := readConnectionData(conn, logger)
@@ -183,7 +183,7 @@ func (httpServer *httpServer) processProtobufMessages(conn *websocket.Conn) {
 			break
 		}
 
-		httpServer.Controllers.ProcessProtobufMessages(ctx, *data)
+		httpServer.Services.ProcessProtobufMessages(ctx, *data)
 	}
 }
 
