@@ -69,7 +69,7 @@ tasks:
     silent: true
     cmds:
     - go get
-    - task: messages
+    - task: proto
 
   deps:update:
     desc: "Upgrade code dependencies"
