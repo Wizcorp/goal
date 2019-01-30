@@ -74,7 +74,7 @@ func LoadConfig() *GoalConfig {
 
 func GetSubconfig(path string, config *GoalConfig) (*GoalConfig, error) {
 	subpath := fmt.Sprintf("goal.%s", path)
-	data, _ := config.Get(subpath)
+	data := config.Get(subpath)
 	subconfig := NewEmptyConfig(subpath)
 
 	if data == nil {

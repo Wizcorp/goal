@@ -84,6 +84,8 @@ github.com/google/pprof v0.0.0-20190109223431-e84dfd68c163/go.mod h1:zfwlbNMJ+OI
 github.com/googleapis/gax-go v2.0.0+incompatible/go.mod h1:SFVmujtThgffbyetf+mdk2eWhX2bMyUtNHzFKcPA9HY=
 github.com/googleapis/gax-go v2.0.2+incompatible/go.mod h1:SFVmujtThgffbyetf+mdk2eWhX2bMyUtNHzFKcPA9HY=
 github.com/googleapis/gax-go/v2 v2.0.3/go.mod h1:LLvjysVCY1JZeum8Z6l8qUty8fiNwE08qbEPm1M08qg=
+github.com/gookit/config v0.0.0-20190114154132-26485c39fb0e h1:kJJa289XaiPjBnRMVXCy3JtFUfBQY9QyYzTWxcxgbvY=
+github.com/gookit/config v0.0.0-20190114154132-26485c39fb0e/go.mod h1:+0W5UvRpZaChP3aXx0cZ+zv7U9tvX+0oSGjisJA6fWA=
 github.com/gookit/config v1.1.0 h1:mO4aPz0jMUIKS8FdEQo6oQJ1Cd+DLCx4NCvJZOjBPnA=
 github.com/gookit/config v1.1.0/go.mod h1:+0W5UvRpZaChP3aXx0cZ+zv7U9tvX+0oSGjisJA6fWA=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=

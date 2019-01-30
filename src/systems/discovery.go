@@ -41,22 +41,14 @@ func NewDiscovery() *discovery {
 }
 
 func (discovery *discovery) Setup(server GoalServer, config *GoalConfig) error {
-	isEnabled, ok := config.Bool("enable")
-	if !ok || !isEnabled {
+	isEnabled := config.Bool("enable", false)
+	if !isEnabled {
 		return nil
 	}
 
 	consulConfig := consul.DefaultConfig()
-
-	address, ok := config.String("address")
-	if ok {
-		consulConfig.Address = address
-	}
-
-	scheme, ok := config.String("scheme")
-	if ok {
-		consulConfig.Scheme = scheme
-	}
+	consulConfig.Address = config.String("address", "127.0.0.1:8500")
+	consulConfig.Scheme = config.String("scheme", "http")
 
 	discovery.Logger = (*server.GetSystem("logger")).(GoalLogger)
 	discovery.Logger.GetInstance().WithFields(LogFields{

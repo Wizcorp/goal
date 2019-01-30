@@ -31,8 +31,8 @@ func (logger *logger) Setup(server GoalServer, config *GoalConfig) error {
 	instance := logger.Instance
 
 	forceColors := os.Getenv("COLORS") == "true"
-	format := getConfigFormat(config)
-	reportCaller := getConfigReportCaller(config)
+	format := config.String("format", "text")
+	reportCaller := config.Bool("reportCaller", false)
 	level, err := getConfigLevel(config)
 
 	if err != nil {
@@ -80,20 +80,8 @@ func (logger *logger) GetInstance() *logrus.Logger {
 	return logger.Instance
 }
 
-func getConfigFormat(config *GoalConfig) string {
-	format, ok := config.String("format")
-	if !ok {
-		format = "text"
-	}
-
-	return format
-}
-
 func getConfigLevel(config *GoalConfig) (logrus.Level, error) {
-	level, ok := config.String("level")
-	if !ok {
-		level = "info"
-	}
+	level := config.String("level", "info")
 
 	switch level {
 	case "trace":
@@ -114,13 +102,4 @@ func getConfigLevel(config *GoalConfig) (logrus.Level, error) {
 
 	err := fmt.Sprintf("unknown log level %s", level)
 	return logrus.TraceLevel, errors.Wrap(err, 0)
-}
-
-func getConfigReportCaller(config *GoalConfig) bool {
-	reportCaller, ok := config.Bool("reportCaller")
-	if !ok {
-		reportCaller = false
-	}
-
-	return reportCaller
 }

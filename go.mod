@@ -22,7 +22,7 @@ require (
 	github.com/golang/protobuf v1.2.1-0.20190109072247-347cf4a86c1c
 	github.com/google/pprof v0.0.0-20190109223431-e84dfd68c163 // indirect
 	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
-	github.com/gookit/config v1.1.0
+	github.com/gookit/config v0.0.0-20190114154132-26485c39fb0e
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/gorilla/mux v1.7.0 // indirect
 	github.com/gorilla/websocket v1.4.0

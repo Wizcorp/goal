@@ -29,10 +29,7 @@ func NewMetrics() *metrics {
 }
 
 func (metrics *metrics) Setup(server GoalServer, config *GoalConfig) error {
-	metricsPath, ok := config.String("path")
-	if !ok {
-		metricsPath = "/metrics"
-	}
+	metricsPath := config.String("path", "/metrics")
 
 	logger := (*server.GetSystem("logger")).(GoalLogger).GetInstance()
 	logger.WithFields(LogFields{

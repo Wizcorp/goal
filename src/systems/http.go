@@ -46,20 +46,9 @@ func NewHTTP() *httpServer {
 }
 
 func (httpServer *httpServer) Setup(server GoalServer, config *GoalConfig) error {
-	prefix, ok := config.String("prefix")
-	if !ok {
-		prefix = "/"
-	}
-
-	addr, ok := config.String("listen")
-	if !ok {
-		addr = "127.0.0.1:8080"
-	}
-
-	messages, ok := config.String("messages")
-	if !ok {
-		messages = "/messages"
-	}
+	prefix := config.String("prefix", "/")
+	addr := config.String("listen", "127.0.0.1:8080")
+	messages := config.String("messages", "/messages")
 
 	httpServer.Logger = (*server.GetSystem("logger")).(GoalLogger)
 	logger := httpServer.Logger.GetInstance()
@@ -90,11 +79,7 @@ func (httpServer *httpServer) Setup(server GoalServer, config *GoalConfig) error
 }
 
 func (httpServer *httpServer) Teardown(server GoalServer, config *GoalConfig) error {
-	timeout, ok := config.Int64("shutdownTimeout")
-	if !ok {
-		timeout = 10
-	}
-
+	timeout := config.Int64("shutdownTimeout", 10)
 	ctx, cancel := context.WithTimeout(context.Background(), (time.Duration)(timeout)*time.Second)
 	defer cancel()
 

@@ -40,22 +40,17 @@ func NewCluster() *cluster {
 func (cluster *cluster) Setup(server GoalServer, config *GoalConfig) error {
 	var err error
 
-	isEnabled, ok := config.Bool("enable")
-	if !ok || !isEnabled {
+	isEnabled := config.Bool("enable", false)
+	if !isEnabled {
 		return nil
 	}
 
-	cluster.Name, ok = config.String("name")
-	if !ok {
-		cluster.Name = "goal"
-	}
-
-	cluster.Address, ok = config.String("address")
-	if !ok {
-		cluster.Address = "127.0.0.1:8081"
-	}
-
+	cluster.Name = config.String("name", "goal")
+	cluster.Address = config.String("address", "127.0.0.1:8081")
 	cluster.NodeID, err = cluster.getClusterNodeID()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	logger := (*server.GetSystem("logger")).(GoalLogger).GetInstance()
 	logger.WithFields(LogFields{
@@ -63,10 +58,6 @@ func (cluster *cluster) Setup(server GoalServer, config *GoalConfig) error {
 		"address": cluster.Address,
 		"nodeId":  cluster.NodeID,
 	}).Info("Setting up cluster system")
-
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
 
 	remote.Start(cluster.Address)
 
