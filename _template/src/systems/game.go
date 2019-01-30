@@ -21,7 +21,7 @@ func NewGame() *game {
 }
 
 func (game *game) Setup(server GoalServer, config *GoalConfig) error {
-	configData, _ := config.Get("")
+	configData := config.Get("")
 	logger := (*server.GetSystem("logger")).(GoalLogger).GetInstance()
 	logger.WithFields(LogFields{
 		"config": configData,

@@ -1,6 +1,7 @@
 package systems
 
 import (
+	"fmt"
 	"log"
 	"sort"
 
@@ -89,7 +90,8 @@ func (server *server) GetSystem(name string) *GoalSystem {
 	system := server.Systems[name]
 
 	if system == nil {
-		log.Panicf("System %s is not registered", name)
+		text := fmt.Sprintf("System named '%s' is not registered", name)
+		panic(text)
 	}
 
 	return &system

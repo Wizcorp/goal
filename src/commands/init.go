@@ -36,17 +36,16 @@ func getProjectDir() string {
 }
 
 func printHeader(template string, dest string) {
-	binaryName := os.Args[0]
-
 	cyan := color.New(color.FgCyan)
 	magenta := color.New(color.FgMagenta)
 
-	cyan.Printf("Creating project %s\n\n", binaryName)
+	cyan.Printf("Initializing project\n")
+	cyan.Printf("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n")
 
-	magenta.Print("template:\t")
+	magenta.Print("- Template:\t")
 	fmt.Println(template)
 
-	magenta.Print("destination:\t")
+	magenta.Print("- Destination:\t")
 	fmt.Println(dest)
 
 	fmt.Println("")
@@ -80,10 +79,10 @@ func copy(info os.FileInfo, srcPath string, destPath string) error {
 	return err
 }
 
-func createProject(src string, dest string) error {
+func createProject(src string, dest string) (error, *string) {
 	matcher, err := createIgnoreMatcher(src)
 	if err != nil {
-		return err
+		return err, nil
 	}
 
 	err = filepath.Walk(src, func(srcPath string, info os.FileInfo, err error) error {
@@ -120,15 +119,15 @@ func createProject(src string, dest string) error {
 		return copy(info, srcPath, destPath)
 	})
 
-	return err
+	return err, nil
 }
 
-func addTemplateFiles(src string, dest string) error {
+func addTemplateFiles(src string, dest string) (error, *string) {
 	templatePath := filepath.Join(src, "_template")
 
 	// Skip if no template folders are present
 	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
-		return nil
+		return nil, nil
 	}
 
 	return filepath.Walk(templatePath, func(srcPath string, info os.FileInfo, err error) error {
@@ -149,7 +148,7 @@ func addTemplateFiles(src string, dest string) error {
 		}
 
 		return copy(info, srcPath, destPath)
-	})
+	}), nil
 }
 
 type TaskfileVars struct {
@@ -161,37 +160,58 @@ type Taskfile struct {
 	Vars TaskfileVars `yaml:vars`
 }
 
-func initializeModule(dest string, moduleName string) error {
+func runCommand(cmd *exec.Cmd) (error, *string) {
+	output, err := cmd.CombinedOutput()
+	stringOutput := string(output)
+
+	return err, &stringOutput
+}
+
+func initializeModule(dest string, moduleName string) (error, *string) {
 	cmd := exec.Command("go", "mod", "init", moduleName)
 	cmd.Dir = dest
 
-	return cmd.Run()
+	return runCommand(cmd)
 }
 
-func updateDependencies(dest string) error {
+func updateDependencies(dest string) (error, *string) {
 	cmd := exec.Command("task", "deps")
 	cmd.Dir = dest
 
-	return cmd.Run()
+	return runCommand(cmd)
 }
 
-func install(dest string) error {
+func install(dest string) (error, *string) {
 	cmd := exec.Command("go", "install")
 	cmd.Dir = dest
 
-	return cmd.Run()
+	return runCommand(cmd)
 }
 
-func runStep(s *spinner.Spinner, prefix string, call func() error) {
+func runStep(s *spinner.Spinner, step string, call func() (error, *string)) {
 	magenta := color.New(color.FgMagenta)
 	bullet := magenta.Sprint("*")
-	s.Prefix = fmt.Sprintf("%s %s ", bullet, prefix)
+	s.Prefix = fmt.Sprintf("%s %s ", bullet, step)
 	s.Color("cyan")
 
-	err := call()
+	err, details := call()
 	if err != nil {
+		red := color.New(color.FgHiRed)
+		yellow := color.New(color.FgYellow)
+
 		s.Stop()
-		panic(err)
+
+		prefix := red.Sprintf("Init step")
+		suffix := red.Sprintf("failed\n\n")
+		fmt.Printf("%s %s %s", prefix, step, suffix)
+
+		if details != nil {
+			yellow.Print(*details)
+		} else {
+			yellow.Printf("%v\n", err)
+		}
+
+		os.Exit(1)
 	}
 }
 
@@ -213,26 +233,26 @@ func init() {
 			fmt.Print("\033[?25l")
 			defer fmt.Print("\033[?25h")
 
-			s := spinner.New(spinner.CharSets[35], 100*time.Millisecond)
+			s := spinner.New(spinner.CharSets[35], 500*time.Millisecond)
 			s.Start()
 
-			runStep(s, "Create new project", func() error {
+			runStep(s, "Create new project", func() (error, *string) {
 				return createProject(src, dest)
 			})
 
-			runStep(s, "Apply additional template files", func() error {
+			runStep(s, "Apply additional template files", func() (error, *string) {
 				return addTemplateFiles(src, dest)
 			})
 
-			runStep(s, "Initialize module", func() error {
+			runStep(s, "Initialize module", func() (error, *string) {
 				return initializeModule(dest, pkgPath)
 			})
 
-			runStep(s, "Update dependencies", func() error {
+			runStep(s, "Update dependencies", func() (error, *string) {
 				return updateDependencies(dest)
 			})
 
-			runStep(s, "Installing to GOPATH", func() error {
+			runStep(s, "Installing to GOPATH", func() (error, *string) {
 				return install(dest)
 			})
 

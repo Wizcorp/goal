@@ -3,7 +3,7 @@
 ## Requirements
 
 * [Go version 1.11 or higher](https://golang.org/dl/)
-* [task](https://github.com/go-task/task)
+* [task](https://taskfile.org/#/installation)
 
 ## Installation
 

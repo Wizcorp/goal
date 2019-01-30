@@ -2,7 +2,6 @@ package systems
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -111,7 +110,6 @@ func (services *services) Setup(server GoalServer, config *GoalConfig) error {
 	services.Logger = (*server.GetSystem("logger")).(GoalLogger)
 	for name, controller := range *services.Services {
 		if controller, ok := interface{}(controller).(GoalServiceWithSetup); ok {
-			fmt.Println("asdasda")
 			subconfig, err := GetSubconfig(name, config)
 			if err != nil {
 				return errors.Wrap(err, 0)
