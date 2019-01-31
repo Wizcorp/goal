@@ -1,6 +1,7 @@
 baseURL = "https://wizcorp.github.io/goal"
 theme = "docdock"
 DefaultContentLanguage = "en"
+publishDir = "../public"
 
 [outputs]
   home = [ "HTML", "RSS", "JSON"]
