@@ -11,6 +11,7 @@ src/
 ##
 # Ignore docs
 ##
+docs/
 
 ##
 # Ignore template files, we will copy them through the init process
