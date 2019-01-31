@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://wizcorp.github.io/goal/ja/</loc>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://wizcorp.github.io/goal/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="ja"
+                href="https://wizcorp.github.io/goal/ja/"
+                />
+  </url>
+  
+  <url>
+    <loc>https://wizcorp.github.io/goal/ja/categories/</loc>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://wizcorp.github.io/goal/categories/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="ja"
+                href="https://wizcorp.github.io/goal/ja/categories/"
+                />
+  </url>
+  
+  <url>
+    <loc>https://wizcorp.github.io/goal/ja/tags/</loc>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://wizcorp.github.io/goal/tags/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="ja"
+                href="https://wizcorp.github.io/goal/ja/tags/"
+                />
+  </url>
+  
+</urlset>
