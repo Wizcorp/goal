@@ -7,6 +7,10 @@ import (
 	. "github.com/Wizcorp/goal/src/systems"
 )
 
+func init() {
+	RegisterSystem(3, "game", NewGame())
+}
+
 type Game interface {
 	GoalSystem
 	SayHello(name string) string

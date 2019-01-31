@@ -24,5 +24,5 @@ func init() {
 		},
 	}
 
-	AddCommand(command)
+	RegisterCommand(command)
 }

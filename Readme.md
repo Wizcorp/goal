@@ -3,7 +3,9 @@
 ## Requirements
 
 * [Go version 1.11 or higher](https://golang.org/dl/)
+* [Protocol Buffers](https://github.com/protocolbuffers/protobuf)
 * [task](https://taskfile.org/#/installation)
+* [hugo](https://gohugo.io) (optional, for documentation)
 
 ## Installation
 

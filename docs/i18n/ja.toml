@@ -1,0 +1,38 @@
+[Search-placeholder]
+other = "検索..."
+
+[Clear-History]
+other = "履歴を消去"
+
+[Page]
+other = "ページ"
+
+[Next-Pages]
+other = "次のページ"
+
+[Previous-Pages]
+other = "前のページ"
+
+[pagination-on]
+other = "/"
+
+[Attachments-label]
+other = "添付"
+
+[title-404]
+other = "エラー"
+
+[message-404]
+other = "アクセスしてみましたページは存在してません。"
+
+[Go-to-homepage]
+other = "ホームページへ"
+
+[Edit-this-page]
+other = "このページを改善する"
+
+[Expand-title]
+other = "Expand me..."
+
+[last-update-on]
+other = "最終更新日"

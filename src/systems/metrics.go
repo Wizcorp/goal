@@ -7,6 +7,10 @@ import (
 	. "github.com/Wizcorp/goal/src/api"
 )
 
+func init() {
+	RegisterSystem(1, "metrics", NewMetrics())
+}
+
 type GoalMetrics interface {
 	GoalSystem
 	RegisterCounter(name string, help string) prometheus.Counter

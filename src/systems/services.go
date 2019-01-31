@@ -17,6 +17,10 @@ import (
 	. "github.com/Wizcorp/goal/src/proto"
 )
 
+func init() {
+	RegisterSystem(4, "services", NewControllers())
+}
+
 var serviceServers = make(map[string]GoalServiceServer)
 var servicesRegistry = make(map[string]GoalService)
 var handlers = make(map[string]GoalServiceHandler)

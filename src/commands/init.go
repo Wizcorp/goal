@@ -167,6 +167,12 @@ func runCommand(cmd *exec.Cmd) (error, *string) {
 	return err, &stringOutput
 }
 
+func installTask() (error, *string) {
+	cmd := exec.Command("go", "get", "github.com/go-task/task/cmd/task")
+
+	return runCommand(cmd)
+}
+
 func initializeModule(dest string, moduleName string) (error, *string) {
 	cmd := exec.Command("go", "mod", "init", moduleName)
 	cmd.Dir = dest
@@ -236,6 +242,10 @@ func init() {
 			s := spinner.New(spinner.CharSets[35], 500*time.Millisecond)
 			s.Start()
 
+			runStep(s, "Ensure task is installed", func() (error, *string) {
+				return installTask()
+			})
+
 			runStep(s, "Create new project", func() (error, *string) {
 				return createProject(src, dest)
 			})
@@ -268,5 +278,5 @@ func init() {
 		},
 	}
 
-	AddCommand(command)
+	RegisterCommand(command)
 }

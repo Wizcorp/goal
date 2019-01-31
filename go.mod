@@ -11,13 +11,14 @@ require (
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/briandowns/spinner v0.0.0-20190126160308-b298438e1f0d
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142 // indirect
-	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/denormal/go-gitignore v0.0.0-20180930084346-ae8ad1d07817
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.7.0
 	github.com/go-errors/errors v1.0.1
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
+	github.com/gobuffalo/envy v1.6.12 // indirect
 	github.com/gogo/protobuf v1.2.0 // indirect
+	github.com/gohugoio/hugo v0.49.2 // indirect
 	github.com/golang/lint v0.0.0-20181217174547-8f45f776aaf1 // indirect
 	github.com/golang/protobuf v1.2.1-0.20190109072247-347cf4a86c1c
 	github.com/google/pprof v0.0.0-20190109223431-e84dfd68c163 // indirect
@@ -34,15 +35,11 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.1 // indirect
 	github.com/hashicorp/serf v0.8.2 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/mattn/go-isatty v0.0.4 // indirect
-	github.com/microcosm-cc/bluemonday v1.0.2 // indirect
+	github.com/markbates/deplist v1.0.5 // indirect
 	github.com/miekg/dns v1.1.3 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/openzipkin/zipkin-go v0.1.5 // indirect
 	github.com/orcaman/concurrent-map v0.0.0-20190107190726-7ed82d9cb717 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
 	github.com/posener/complete v1.2.1 // indirect
 	github.com/prometheus/client_golang v0.9.2
 	github.com/prometheus/client_model v0.0.0-20190115171406-56726106282f // indirect
@@ -65,7 +62,6 @@ require (
 	github.com/shurcooL/webdavfs v0.0.0-20181215192745-5988b2d638f6 // indirect
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/cobra v0.0.3
-	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/twitchtv/twirp v5.5.1+incompatible
 	go.opencensus.io v0.19.0 // indirect
 	go4.org v0.0.0-20181109185143-00e24f1b2599 // indirect

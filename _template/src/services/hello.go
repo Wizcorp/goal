@@ -11,6 +11,14 @@ import (
 	. "github.com/Wizcorp/goal/src/systems"
 )
 
+func init() {
+	hooks := (*GoalHooks)(nil)
+	service := &HelloService{}
+	server := NewHelloServer(service, hooks)
+
+	RegisterService(HelloPathPrefix, server, service, hooks)
+}
+
 type HelloService struct {
 	game Game
 }
@@ -36,12 +44,4 @@ func (hello *HelloService) HandleHello(ctx context.Context, message *HelloReques
 	if err != nil {
 		log.Printf("%v", err)
 	}
-}
-
-func init() {
-	hooks := (*GoalHooks)(nil)
-	service := &HelloService{}
-	server := NewHelloServer(service, hooks)
-
-	RegisterService(HelloPathPrefix, server, service, hooks)
 }

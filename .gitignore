@@ -1,2 +1,5 @@
 # Build folder
 builds/
+
+# Documentation / Website folder
+public/

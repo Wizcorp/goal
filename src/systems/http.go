@@ -13,6 +13,10 @@ import (
 	. "github.com/Wizcorp/goal/src/api"
 )
 
+func init() {
+	RegisterSystem(5, "http", NewHTTP())
+}
+
 type GoalHTTP interface {
 	GoalSystem
 	http.Handler

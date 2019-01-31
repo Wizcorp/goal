@@ -14,3 +14,21 @@ type GoalSystem interface {
 	Teardown(server GoalServer, config *GoalConfig) error
 	GetStatus() Status
 }
+
+type GoalRunlevel map[string]GoalSystem
+
+type systemRecord struct {
+	Runlevel int
+	Name     string
+	System   GoalSystem
+}
+
+var systems = []systemRecord{}
+
+func RegisterSystem(runlevel int, name string, system GoalSystem) {
+	systems = append(systems, systemRecord{
+		Runlevel: runlevel,
+		Name:     name,
+		System:   system,
+	})
+}

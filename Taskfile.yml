@@ -55,7 +55,7 @@ tasks:
     cmds:
     - protoc --twirp_out=./ --go_out=./ ./_template/src/proto/*.proto
 
-  clean:proto:
+  clean:proto:template:
     desc: "Clean up generated code by Protobuf in the template"
     silent: true
     cmds:
@@ -65,9 +65,11 @@ tasks:
   # Dependencies
   ##
   deps:
-    desc: "Install/update all dependencies, submodules, and re-generate message code"
+    desc: "Install all dependencies and re-generate message code"
     silent: true
     cmds:
+    - go get github.com/golang/protobuf/protoc-gen-go
+    - go get github.com/twitchtv/twirp/protoc-gen-twirp
     - go get
     - task: proto
 
@@ -76,7 +78,6 @@ tasks:
     silent: true
     cmds:
     - go get -u
-    - go mod vendor
 
   clean:deps:
     desc: "Clean up dependencies and generated code"

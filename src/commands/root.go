@@ -26,7 +26,6 @@ var command = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		config := LoadConfig()
 		server := systems.NewServer(config)
-		server.RegisterDefaultSystems()
 		err := server.Start()
 
 		if err != nil {
@@ -83,7 +82,7 @@ var command = &cobra.Command{
 
 // AddCommand allows developers to add their own custom commands
 // when needed
-func AddCommand(cmd *cobra.Command) {
+func RegisterCommand(cmd *cobra.Command) {
 	command.AddCommand(cmd)
 }
 

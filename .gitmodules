@@ -1,0 +1,6 @@
+[submodule "docs/themes/learn"]
+	path = docs/themes/learn
+	url = https://github.com/matcornic/hugo-theme-learn.git
+[submodule "docs/themes/docdock"]
+	path = docs/themes/docdock
+	url = https://github.com/vjeantet/hugo-theme-docdock.git

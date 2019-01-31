@@ -10,6 +10,10 @@ import (
 	. "github.com/Wizcorp/goal/src/api"
 )
 
+func init() {
+	RegisterSystem(0, "logger", NewLogger())
+}
+
 type GoalLogger interface {
 	GoalSystem
 	GetInstance() *logrus.Logger

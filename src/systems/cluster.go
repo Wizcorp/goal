@@ -11,6 +11,10 @@ import (
 	. "github.com/Wizcorp/goal/src/api"
 )
 
+func init() {
+	RegisterSystem(3, "cluster", NewCluster())
+}
+
 type GoalClusterNode struct {
 	ID      string
 	Address string

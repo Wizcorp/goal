@@ -10,6 +10,10 @@ import (
 	. "github.com/Wizcorp/goal/src/api"
 )
 
+func init() {
+	RegisterSystem(2, "discovery", NewDiscovery())
+}
+
 type GoalDiscovery interface {
 	GoalSystem
 	RegisterService(name string, id string, tags []string, address string) error
